@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.vinxi/
+.output/
+.env
+.env.local
+.env.*.local
+*.log
+.DS_Store
+*.db
+*.sqlite
+Kureha_Backup/

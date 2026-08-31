@@ -14,7 +14,7 @@ This ledger is the compact execution checkpoint for work governed by [`docs/prd/
 | Milestone | Scope | Status | Git checkpoint | Evidence |
 |---|---|---|---|---|
 | Baseline | Stabilize Phase 2 core, approve PRD-001, isolate opt-in Postgres tests | Closed | `58d66be` | 23 unit tests, typecheck, build |
-| M1 | Canonical media identity and mapping-history schema | Verification | Pending commit on `feat/m1-canonical-media-identity` | 29 tests including PGlite `0000 → 0001`, typecheck, build, diff check, Graphify update, independent review PASS |
+| M1 | Canonical media identity and mapping-history schema | Closed | `e979965` on `feat/m1-canonical-media-identity` | 29 tests including PGlite `0000 → 0001`, typecheck, build, diff check, Graphify update, independent review PASS |
 | M2 | Tracking migration to canonical group/episode IDs | Planned | — | Must trace to `FR-022`, `FR-023`, `FR-025` |
 
 ## M1 acceptance record — 2026-08-31
@@ -47,9 +47,9 @@ These are deliberately not hidden inside “done”:
 2. Enforce that version entries target entities belonging to the mapping version’s media group in the M2 transaction/repository layer (or strengthen with compound database keys).
 3. Add Supabase `auth.users` linkage and RLS policies in the real-Postgres authorization milestone.
 
-### Closure condition
+### Closure record
 
-M1 is functionally accepted but remains in **Verification** until its staged changes are committed as a durable Git checkpoint. Do not call it **Closed** before that commit exists.
+M1 was closed by commit `e979965` (`feat(identity): add canonical media schema and mapping history`) on `feat/m1-canonical-media-identity`. It has not been pushed or merged.
 
 ## Next milestone proposal: M2 — Canonical tracking references
 

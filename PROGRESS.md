@@ -14,8 +14,9 @@ Approved PRD and architecture implementation. The deterministic tracking core an
 
 - Branch: `feat/m1-canonical-media-identity`
 - Baseline commit: `58d66be`
-- M1 changes: staged, not yet committed or pushed
-- M1 status: **Verification** until a durable commit exists
+- M1 checkpoint commit: `e979965`
+- M1 status: **Closed**
+- Remote state: not pushed or merged
 
 ## Completed checkpoints
 
@@ -36,7 +37,7 @@ Approved PRD and architecture implementation. The deterministic tracking core an
 - Real Postgres tests are opt-in.
 - PRD and project rules are anchored in the repository.
 
-### M1 — accepted, awaiting checkpoint commit
+### M1 — closed
 
 Delivered canonical identity, mapping history, release evidence, profile constraints, clean migration, and PGlite migration tests.
 
@@ -53,10 +54,9 @@ See [`docs/implementation/MILESTONES.md`](docs/implementation/MILESTONES.md) for
 
 ## Next checkpoint
 
-1. Commit the staged M1 implementation and this progress documentation on `feat/m1-canonical-media-identity`.
-2. Do not push or merge without explicit user direction.
-3. Draft the short M2 architecture contract for migrating tracking rows to canonical Kureha group/episode IDs.
-4. Review that contract before launching OpenCode implementation.
+1. Do not push or merge `feat/m1-canonical-media-identity` without explicit user direction.
+2. Draft the short M2 architecture contract for migrating tracking rows to canonical Kureha group/episode IDs.
+3. Review that contract before launching OpenCode implementation.
 
 ## M2 boundary
 

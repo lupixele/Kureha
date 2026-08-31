@@ -1,22 +1,69 @@
-## Current State
-Phase 2 (Wiring the Tracker) stabilization underway. The tracker domain is implemented as pure functions, wired into Supabase Postgres with Google OAuth, Drizzle ORM, and TanStack Start. The application maintains a clean tracker-only architecture with a two-axis model (progress + intent) and no streaming logic.
+# Kureha Progress
 
-## Recent Decisions
-- Fixed major new-title persistence bug (implemented transaction + parent upsert in mark-watched).
-- Removed auto-seeding on library reads; replaced with explicit dev seed script.
-- Added database constraints and integration tests for mark-watched persistence.
-- Verified expected behaviour of episode UI with rewatch increment.
+**Last updated:** 2026-08-31 20:00 IST
 
-## Next Steps
-1. **Stabilization & Closure of Phase 2**: Fix remaining seed script/type inconsistencies, harden DB constraints and concurrent mutation semantics, and add a test-mode DB environment.
-2. Complete full verification and commit the stable working tree.
-3. Design the canonical media/provider identity.
-4. Implement TMDB primary metadata client.
+**Canonical product contract:** [`docs/prd/PRD-001-kureha-core.md`](docs/prd/PRD-001-kureha-core.md)
 
-## Open Questions / Blockers
-- **Provider Identity**: Canonical provider/media identity needs to be settled for TMDB primary + per-title TVDB fallback.
-- **Episode Mapping**: Episode mapping/renumbering strategy for provider corrections.
-- **Unknown Episode Count**: Rule for unknown episode-count progress before real metadata can be incomplete.
+**Execution ledger:** [`docs/implementation/MILESTONES.md`](docs/implementation/MILESTONES.md)
 
-## Last Updated
-2026-08-18
+## Current phase
+
+Approved PRD and architecture implementation. The deterministic tracking core and server wiring baseline are stable. Milestone 1 (canonical media identity schema) has passed implementation, automated gates, migration execution in PGlite, and fresh-context adversarial review.
+
+## Current Git state
+
+- Branch: `feat/m1-canonical-media-identity`
+- Baseline commit: `58d66be`
+- M1 changes: staged, not yet committed or pushed
+- M1 status: **Verification** until a durable commit exists
+
+## Completed checkpoints
+
+### Product and provider decisions
+
+- PRD-001 approved and canonical.
+- Tracker-only scope: no streaming, torrents, or built-in playback.
+- Kureha owns stable group, track, installment, and episode IDs.
+- AniList is canonical for anime identity, typed relations, and airing schedules.
+- Ani.zip is optional, non-blocking enrichment.
+- TMDB is canonical for movies and non-anime TV, with mapped anime artwork only.
+- Community-created watch-order schemes are post-v1, not v1.
+
+### Baseline — closed
+
+- Commit `58d66be` established the stable Phase 2 baseline.
+- Default tests are deterministic and network-free.
+- Real Postgres tests are opt-in.
+- PRD and project rules are anchored in the repository.
+
+### M1 — accepted, awaiting checkpoint commit
+
+Delivered canonical identity, mapping history, release evidence, profile constraints, clean migration, and PGlite migration tests.
+
+Acceptance evidence:
+
+- `npm test`: 29/29 passed
+- `npm run typecheck`: passed
+- `npm run build`: passed
+- `git diff --check`: passed
+- `graphify update .`: completed
+- independent final review: PASS
+
+See [`docs/implementation/MILESTONES.md`](docs/implementation/MILESTONES.md) for exact artifacts and follow-ups.
+
+## Next checkpoint
+
+1. Commit the staged M1 implementation and this progress documentation on `feat/m1-canonical-media-identity`.
+2. Do not push or merge without explicit user direction.
+3. Draft the short M2 architecture contract for migrating tracking rows to canonical Kureha group/episode IDs.
+4. Review that contract before launching OpenCode implementation.
+
+## M2 boundary
+
+M2 covers canonical tracking references and safe legacy backfill only. Provider network clients, search/UI, social/RLS implementation, and future community watch-order schemes remain outside M2.
+
+## Known non-blocking follow-ups
+
+- Unique mapping-version number per group.
+- Cross-group consistency for mapping-version entries.
+- Supabase `auth.users` linkage and RLS in the real-Postgres authorization milestone.

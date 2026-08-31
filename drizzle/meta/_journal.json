@@ -8,6 +8,13 @@
       "when": 1785159289188,
       "tag": "0000_great_scarlet_witch",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788181840541,
+      "tag": "0001_M1_canonical_media_identity",
+      "breakpoints": true
     }
   ]
 }

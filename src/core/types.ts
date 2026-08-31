@@ -1,4 +1,4 @@
-// user_id assumed to be a UUID string; auth provider not yet decided
+// user_id is a UUID string from Google OAuth via Supabase Auth
 
 export type ReleaseState = 'unreleased' | 'released' | 'ongoing' | 'ended';
 export type Progress = 'unreleased' | 'not_started' | 'in_progress' | 'caught_up' | 'finished';
@@ -13,7 +13,7 @@ export interface TrackedMedia {
   intent: Intent;
   totalEpisodes: number | null;
   releaseState: ReleaseState;
-  intentChangedAt?: number | null;
+  intentChangedAt: number | null;
   addedAt: number;
 }
 

@@ -1,93 +1,30 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Database from 'better-sqlite3';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { describe, it, expect } from 'vitest';
+import { getTableName } from 'drizzle-orm';
+import { trackedMedia, watchedEpisodes } from '../src/db/schema';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-describe('Database Schema', () => {
-  let db: Database.Database;
-
-  beforeEach(() => {
-    // Create an in-memory database for testing the schema
-    db = new Database(':memory:');
-
-    // Load schema
-    const schemaSql = fs.readFileSync(path.join(__dirname, '../src/core/schema.sql'), 'utf8');
-    db.exec(schemaSql);
+describe('Database Schema (Drizzle Postgres)', () => {
+  it('should define tracked_media table correctly', () => {
+    expect(getTableName(trackedMedia)).toBe('tracked_media');
+    expect(trackedMedia.userId.name).toBe('user_id');
+    expect(trackedMedia.mediaId.name).toBe('media_id');
+    expect(trackedMedia.mediaType.name).toBe('media_type');
+    expect(trackedMedia.metadataSource.name).toBe('metadata_source');
+    expect(trackedMedia.metadataSource.default).toBe('tmdb');
+    expect(trackedMedia.intent.name).toBe('intent');
+    expect(trackedMedia.intent.default).toBe('active');
+    expect(trackedMedia.addedAt.name).toBe('added_at');
+    expect(trackedMedia.releaseState.name).toBe('release_state');
   });
 
-  afterEach(() => {
-    db.close();
-  });
-
-  it('should create tracked_media table successfully', () => {
-    const stmt = db.prepare(`
-      SELECT name FROM sqlite_master WHERE type='table' AND name='tracked_media';
-    `);
-    const table = stmt.get();
-    expect(table).toBeDefined();
-  });
-
-  it('should create watched_episodes table successfully', () => {
-    const stmt = db.prepare(`
-      SELECT name FROM sqlite_master WHERE type='table' AND name='watched_episodes';
-    `);
-    const table = stmt.get();
-    expect(table).toBeDefined();
-  });
-
-  it('should enforce foreign key constraint on watched_episodes', () => {
-    // Enable foreign keys
-    db.pragma('foreign_keys = ON');
-
-    const insertEpisode = db.prepare(`
-      INSERT INTO watched_episodes (user_id, media_id, season_number, episode_number, watched_at, rewatch_count)
-      VALUES ('test-user', 'movie-1', 0, 0, 123456789, 1)
-    `);
-
-    // Should fail because there is no corresponding tracked_media
-    expect(() => insertEpisode.run()).toThrowError(/FOREIGN KEY constraint failed/);
-
-    // Now add the tracked_media
-    const insertMedia = db.prepare(`
-      INSERT INTO tracked_media (user_id, media_id, media_type, added_at, release_state)
-      VALUES ('test-user', 'movie-1', 'movie', 123456789, 'released')
-    `);
-    insertMedia.run();
-
-    // Now it should succeed
-    expect(() => insertEpisode.run()).not.toThrow();
-  });
-
-  it('should enforce primary key uniqueness on tracked_media', () => {
-    const insertMedia = db.prepare(`
-      INSERT INTO tracked_media (user_id, media_id, media_type, added_at, release_state)
-      VALUES ('test-user', 'movie-1', 'movie', 123456789, 'released')
-    `);
-    insertMedia.run();
-
-    expect(() => insertMedia.run()).toThrowError(/UNIQUE constraint failed: tracked_media.user_id, tracked_media.media_id/);
-  });
-
-  it('should enforce primary key uniqueness on watched_episodes', () => {
-    // Enable foreign keys
-    db.pragma('foreign_keys = ON');
-
-    const insertMedia = db.prepare(`
-      INSERT INTO tracked_media (user_id, media_id, media_type, added_at, release_state)
-      VALUES ('test-user', 'movie-1', 'movie', 123456789, 'released')
-    `);
-    insertMedia.run();
-
-    const insertEpisode = db.prepare(`
-      INSERT INTO watched_episodes (user_id, media_id, season_number, episode_number, watched_at, rewatch_count)
-      VALUES ('test-user', 'movie-1', 1, 1, 123456789, 1)
-    `);
-    insertEpisode.run();
-
-    expect(() => insertEpisode.run()).toThrowError(/UNIQUE constraint failed: watched_episodes.user_id, watched_episodes.media_id, watched_episodes.season_number, watched_episodes.episode_number/);
+  it('should define watched_episodes table correctly', () => {
+    expect(getTableName(watchedEpisodes)).toBe('watched_episodes');
+    expect(watchedEpisodes.userId.name).toBe('user_id');
+    expect(watchedEpisodes.mediaId.name).toBe('media_id');
+    expect(watchedEpisodes.seasonNumber.name).toBe('season_number');
+    expect(watchedEpisodes.seasonNumber.default).toBe(0);
+    expect(watchedEpisodes.episodeNumber.name).toBe('episode_number');
+    expect(watchedEpisodes.watchedAt.name).toBe('watched_at');
+    expect(watchedEpisodes.rewatchCount.name).toBe('rewatch_count');
+    expect(watchedEpisodes.rewatchCount.default).toBe(1);
   });
 });

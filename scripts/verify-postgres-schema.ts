@@ -142,6 +142,40 @@ async function main() {
     }
     console.log('✓ duplicate watched_episodes row rejected by primary key');
 
+    // Test upsert increment logic
+    await sql`
+      INSERT INTO watched_episodes (
+        user_id,
+        media_id,
+        season_number,
+        episode_number,
+        watched_at,
+        rewatch_count
+      ) VALUES (${testUserId}, ${trackedMediaId}, 1, 1, 1234567890, 1)
+      ON CONFLICT (user_id, media_id, season_number, episode_number)
+      DO UPDATE SET rewatch_count = watched_episodes.rewatch_count + 1
+    `;
+    await sql`
+      INSERT INTO watched_episodes (
+        user_id,
+        media_id,
+        season_number,
+        episode_number,
+        watched_at,
+        rewatch_count
+      ) VALUES (${testUserId}, ${trackedMediaId}, 1, 1, 1234567890, 1)
+      ON CONFLICT (user_id, media_id, season_number, episode_number)
+      DO UPDATE SET rewatch_count = watched_episodes.rewatch_count + 1
+    `;
+    const res = await sql`
+      SELECT rewatch_count FROM watched_episodes
+      WHERE user_id = ${testUserId} AND media_id = ${trackedMediaId} AND season_number = 1 AND episode_number = 1
+    `;
+    if (res[0].rewatch_count !== 2) {
+      throw new Error('Watched episode upsert failed to increment rewatch_count. Got: ' + res[0].rewatch_count);
+    }
+    console.log('✓ double-mark rewatch conflict correctly increments rewatch_count to 2');
+
     await cleanup();
     console.log('✓ verification rows cleaned up');
   } finally {

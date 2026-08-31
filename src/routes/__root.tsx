@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { useNavigate, createRootRoute, HeadContent, Outlet, Scripts } from '@tanstack/react-router';
+import { Session } from '@supabase/supabase-js';
 import { supabase } from '../auth/supabase-browser';
 
 export const Route = createRootRoute({
@@ -17,7 +18,7 @@ export const Route = createRootRoute({
 });
 
 function RootComponent() {
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 

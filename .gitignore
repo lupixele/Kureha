@@ -10,3 +10,6 @@ dist/
 *.db
 *.sqlite
 Kureha_Backup/
+.opencode/
+graphify-out/
+

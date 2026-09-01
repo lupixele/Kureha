@@ -16,11 +16,11 @@ The first independent M2 review requested contract corrections. Those correction
 
 ## Current Git state
 
-- Branch: `feat/m1-canonical-media-identity`
+- Branch: `feat/m2-canonical-tracking-references`
 - Baseline commit: `58d66be`
 - M1 checkpoint commit: `e979965`
 - M1 status: **Closed**
-- Remote state: M1/M2 contract checkpoint pending push; not merged
+- M1/M2 contract checkpoint: `2d027c4`, pushed to `origin/feat/m1-canonical-media-identity`; not merged
 
 ## Completed checkpoints
 
@@ -58,9 +58,9 @@ See [`docs/implementation/MILESTONES.md`](docs/implementation/MILESTONES.md) for
 
 ## Next checkpoint
 
-1. Do not push or merge `feat/m1-canonical-media-identity` without explicit user direction.
-2. Commit and push the approved M2 contract checkpoint.
-3. Create a clean M2 implementation branch from that checkpoint and launch OpenCode with contract-traced tests first.
+1. Implement M2 only on `feat/m2-canonical-tracking-references` against the approved architecture contract.
+2. Start with contract-traced failing tests and the destructive PGlite migration.
+3. Do not merge either feature branch into `main` without explicit user direction.
 
 ## M2 boundary
 

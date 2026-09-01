@@ -111,6 +111,7 @@ export const mappingVersions = pgTable('mapping_versions', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
+  unique('mapping_versions_media_group_id_version_number_unique').on(table.mediaGroupId, table.versionNumber),
   uniqueIndex('mapping_versions_one_active_idx').on(table.mediaGroupId).where(sql`${table.status} = 'active'`)
 ]);
 
@@ -177,49 +178,68 @@ export const releaseStateEvidence = pgTable('release_state_evidence', {
 // Types redefined temporarily here if they differ from original core/types to avoid importing broken deps
 export type ReleaseStateLegacy = 'unreleased' | 'released' | 'ongoing' | 'ended';
 
-export const trackedMedia = pgTable(
-  'tracked_media',
-  {
-    userId: text('user_id').notNull(),
-    mediaId: text('media_id').notNull(),
-    mediaType: text('media_type').notNull().$type<TrackedMedia['mediaType']>(),
-    metadataSource: text('metadata_source').notNull().default('tmdb').$type<MetadataSource>(),
-    intent: text('intent').notNull().default('active').$type<Intent>(),
-    addedAt: integer('added_at').notNull(),
-    intentChangedAt: integer('intent_changed_at'),
-    totalEpisodes: integer('total_episodes'),
-    releaseState: text('release_state').notNull().$type<ReleaseStateLegacy>(),
-  },
-  (table) => [
-    primaryKey({ columns: [table.userId, table.mediaId] }),
-  ],
-);
+// M1 Hardening Constraint added on mappingVersions table earlier
 
-export const watchedEpisodes = pgTable(
-  'watched_episodes',
-  {
-    userId: text('user_id').notNull(),
-    mediaId: text('media_id').notNull(),
-    seasonNumber: integer('season_number').notNull().default(0),
-    episodeNumber: integer('episode_number').notNull(),
-    watchedAt: integer('watched_at').notNull(),
-    rewatchCount: integer('rewatch_count').notNull().default(1),
-  },
-  (table) => [
-    primaryKey({
-      columns: [table.userId, table.mediaId, table.seasonNumber, table.episodeNumber],
-    }),
-    foreignKey({
-      columns: [table.userId, table.mediaId],
-      foreignColumns: [trackedMedia.userId, trackedMedia.mediaId],
-    }),
-  ],
-);
+export const trackingActionEnum = pgEnum('tracking_action', ['mark_episode', 'unmark_episode', 'mark_movie', 'unmark_movie', 'add_to_library', 'remove_from_library', 'set_intent', 'delete_tracking']);
+export const intentEnum = pgEnum('intent', ['active', 'paused', 'watch_later', 'dropped']);
 
-export type TrackedMediaRow = typeof trackedMedia.$inferSelect;
-export type NewTrackedMediaRow = typeof trackedMedia.$inferInsert;
-export type WatchedEpisodeRow = typeof watchedEpisodes.$inferSelect;
-export type NewWatchedEpisodeRow = typeof watchedEpisodes.$inferInsert;
+export const userMediaState = pgTable('user_media_state', {
+  userId: uuid('user_id').notNull().references(() => profiles.id, { onDelete: 'cascade' }),
+  mediaGroupId: uuid('media_group_id').notNull().references(() => mediaGroups.id, { onDelete: 'cascade' }),
+  inLibrary: boolean('in_library').notNull().default(false),
+  intent: intentEnum('intent').notNull().default('active'),
+  firstAddedAt: timestamp('first_added_at', { withTimezone: true }),
+  lastAddedAt: timestamp('last_added_at', { withTimezone: true }),
+  membershipChangedAt: timestamp('membership_changed_at', { withTimezone: true }),
+  intentChangedAt: timestamp('intent_changed_at', { withTimezone: true }),
+  lastActivityAt: timestamp('last_activity_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  primaryKey({ columns: [table.userId, table.mediaGroupId] })
+]);
+
+export const canonicalWatchedEpisodes = pgTable('canonical_watched_episodes', {
+  userId: uuid('user_id').notNull().references(() => profiles.id, { onDelete: 'cascade' }),
+  episodeId: uuid('episode_id').notNull().references(() => episodes.id, { onDelete: 'cascade' }),
+  firstWatchedAt: timestamp('first_watched_at', { withTimezone: true }).notNull().defaultNow(),
+  lastWatchedAt: timestamp('last_watched_at', { withTimezone: true }).notNull().defaultNow(),
+  rewatchCount: integer('rewatch_count').notNull().default(1),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  primaryKey({ columns: [table.userId, table.episodeId] }),
+  check('canonical_watched_episodes_rewatch_count', sql`${table.rewatchCount} >= 1`)
+]);
+
+export const canonicalWatchedMovies = pgTable('canonical_watched_movies', {
+  userId: uuid('user_id').notNull().references(() => profiles.id, { onDelete: 'cascade' }),
+  mediaGroupId: uuid('media_group_id').notNull().references(() => mediaGroups.id, { onDelete: 'cascade' }),
+  firstWatchedAt: timestamp('first_watched_at', { withTimezone: true }).notNull().defaultNow(),
+  lastWatchedAt: timestamp('last_watched_at', { withTimezone: true }).notNull().defaultNow(),
+  rewatchCount: integer('rewatch_count').notNull().default(1),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  primaryKey({ columns: [table.userId, table.mediaGroupId] }),
+  check('canonical_watched_movies_rewatch_count', sql`${table.rewatchCount} >= 1`)
+]);
+
+export const trackingOperations = pgTable('tracking_operations', {
+  userId: uuid('user_id').notNull().references(() => profiles.id, { onDelete: 'cascade' }),
+  operationId: uuid('operation_id').notNull(),
+  action: trackingActionEnum('action').notNull(),
+  requestHash: text('request_hash').notNull(),
+  result: jsonb('result'),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+}, (table) => [
+  primaryKey({ columns: [table.userId, table.operationId] })
+]);
+
+export type UserMediaStateRow = typeof userMediaState.$inferSelect;
+export type CanonicalWatchedEpisodeRow = typeof canonicalWatchedEpisodes.$inferSelect;
+export type CanonicalWatchedMovieRow = typeof canonicalWatchedMovies.$inferSelect;
+export type TrackingOperationRow = typeof trackingOperations.$inferSelect;
 
 // Types for new M1 identities
 export type ProfileRow = typeof profiles.$inferSelect;

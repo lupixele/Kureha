@@ -10,17 +10,16 @@
 
 ## Current phase
 
-Approved PRD and architecture implementation. The deterministic tracking core and server wiring baseline are stable. Milestone 1 is closed. Milestone 2 has an owner-approved canonical tracking contract and is ready for its implementation checkpoint; no M2 code has started yet.
+Approved PRD and architecture implementation. Milestone 1 and Milestone 2 are complete and verified. Milestone 2 (canonical tracking references and server actions) has passed implementation, 40 PGlite acceptance tests, typecheck, build, and independent adversarial review.
 
 The first independent M2 review requested contract corrections. Those corrections were applied for unreleased progress, concurrent idempotency/rewatches, library/delete transactions, and date-only release evidence. A focused independent confirmation review returned **PASS**, and the owner approved the corrected contract on 2026-09-01.
 
 ## Current Git state
 
-- Branch: `feat/m2-canonical-tracking-references`
-- Baseline commit: `58d66be`
-- M1 checkpoint commit: `e979965`
-- M1 status: **Closed**
-- M1/M2 contract checkpoint: `2d027c4`, pushed to `origin/feat/m1-canonical-media-identity`; not merged
+- Active branch: `feat/m2-canonical-tracking-references`
+- M1 checkpoint: `e979965` (closed)
+- M1/M2 contract checkpoint: `2d027c4` (pushed to `origin/feat/m1-canonical-media-identity`)
+- M2 status: **Closed** upon checkpoint commit
 
 ## Completed checkpoints
 
@@ -58,9 +57,9 @@ See [`docs/implementation/MILESTONES.md`](docs/implementation/MILESTONES.md) for
 
 ## Next checkpoint
 
-1. Implement M2 only on `feat/m2-canonical-tracking-references` against the approved architecture contract.
-2. Start with contract-traced failing tests and the destructive PGlite migration.
-3. Do not merge either feature branch into `main` without explicit user direction.
+1. Commit and push the verified M2 checkpoint on `feat/m2-canonical-tracking-references`.
+2. Do not merge into `main` without explicit user direction.
+3. Next milestone: Milestone 3 (Metadata provider integration — AniList anime client + TMDB movies/TV client + Ani.zip enrichment).
 
 ## M2 boundary
 

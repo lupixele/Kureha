@@ -15,6 +15,13 @@
       "when": 1788181840541,
       "tag": "0001_M1_canonical_media_identity",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788238600303,
+      "tag": "0002_M2_canonical_tracking",
+      "breakpoints": true
     }
   ]
 }

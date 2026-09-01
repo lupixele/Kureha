@@ -19,7 +19,8 @@ The first independent M2 review requested contract corrections. Those correction
 - Active branch: `feat/m2-canonical-tracking-references`
 - M1 checkpoint: `e979965` (closed)
 - M1/M2 contract checkpoint: `2d027c4` (pushed to `origin/feat/m1-canonical-media-identity`)
-- M2 status: **Closed** upon checkpoint commit
+- M2 checkpoint commit: `5fc22a2` (pushed to `origin/feat/m2-canonical-tracking-references`)
+- M2 status: **Closed**
 
 ## Completed checkpoints
 

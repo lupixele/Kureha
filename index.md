@@ -15,6 +15,7 @@ Full-stack media platform built with TanStack Start, Drizzle ORM, Supabase Auth/
 - [Canonical PRD](docs/prd/PRD-001-kureha-core.md) — Approved product contract and source of truth.
 - [Milestone ledger](docs/implementation/MILESTONES.md) — Built/verified checkpoints, acceptance evidence, and next milestone boundaries.
 - [Current progress](PROGRESS.md) — Current branch, status, and immediate next actions.
+- [M2 canonical tracking contract](docs/architecture/M2-canonical-tracking-contract.md) — Owner-approved schema, API, migration, rollback, and acceptance-test contract.
 - [Tracking Core History](P:\Download\Kureha\CONTEXT\KUREHA_TRACKING_CORE_TURN_INDEX_2026-08-18.md)
 - [Master Context Audit](P:\Download\Kureha\CONTEXT\KUREHA_MASTER_CONTEXT_AND_IMPLEMENTATION_AUDIT_2026-08-18.md)
 - [Graphify graph data](graphify-out/graph.json) — Generated nodes, edges, and communities; read-only evidence.

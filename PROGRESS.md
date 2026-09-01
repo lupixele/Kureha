@@ -1,14 +1,18 @@
 # Kureha Progress
 
-**Last updated:** 2026-08-31 20:00 IST
+**Last updated:** 2026-09-01 08:47 IST
 
 **Canonical product contract:** [`docs/prd/PRD-001-kureha-core.md`](docs/prd/PRD-001-kureha-core.md)
 
 **Execution ledger:** [`docs/implementation/MILESTONES.md`](docs/implementation/MILESTONES.md)
 
+**Approved M2 architecture:** [`docs/architecture/M2-canonical-tracking-contract.md`](docs/architecture/M2-canonical-tracking-contract.md)
+
 ## Current phase
 
-Approved PRD and architecture implementation. The deterministic tracking core and server wiring baseline are stable. Milestone 1 (canonical media identity schema) has passed implementation, automated gates, migration execution in PGlite, and fresh-context adversarial review.
+Approved PRD and architecture implementation. The deterministic tracking core and server wiring baseline are stable. Milestone 1 is closed. Milestone 2 has an owner-approved canonical tracking contract and is ready for its implementation checkpoint; no M2 code has started yet.
+
+The first independent M2 review requested contract corrections. Those corrections were applied for unreleased progress, concurrent idempotency/rewatches, library/delete transactions, and date-only release evidence. A focused independent confirmation review returned **PASS**, and the owner approved the corrected contract on 2026-09-01.
 
 ## Current Git state
 
@@ -16,7 +20,7 @@ Approved PRD and architecture implementation. The deterministic tracking core an
 - Baseline commit: `58d66be`
 - M1 checkpoint commit: `e979965`
 - M1 status: **Closed**
-- Remote state: not pushed or merged
+- Remote state: M1/M2 contract checkpoint pending push; not merged
 
 ## Completed checkpoints
 
@@ -55,12 +59,38 @@ See [`docs/implementation/MILESTONES.md`](docs/implementation/MILESTONES.md) for
 ## Next checkpoint
 
 1. Do not push or merge `feat/m1-canonical-media-identity` without explicit user direction.
-2. Draft the short M2 architecture contract for migrating tracking rows to canonical Kureha group/episode IDs.
-3. Review that contract before launching OpenCode implementation.
+2. Commit and push the approved M2 contract checkpoint.
+3. Create a clean M2 implementation branch from that checkpoint and launch OpenCode with contract-traced tests first.
 
 ## M2 boundary
 
 M2 covers canonical tracking references and safe legacy backfill only. Provider network clients, search/UI, social/RLS implementation, and future community watch-order schemes remain outside M2.
+
+### M2 decision confirmed
+
+- Existing legacy tracking rows are disposable development data and may be deleted during migration.
+- M2 does not need a temporary provider-ID history bridge or unmatched-row preservation for this pre-production data.
+- M2 will cut over server mutations directly to canonical Kureha IDs; no old text-ID compatibility API remains.
+- Episodic marks use canonical `episode_id`; library and intent actions use canonical `media_group_id`.
+- Watched movies use a dedicated `watched_movies` table, never a fake Episode 1.
+- Library membership and intent use one `user_media_state` record per user/group, with membership and intent stored as separate fields.
+- Removing a title preserves both history and its prior intent; re-adding restores that intent. Explicit delete-tracking removes both.
+- Rewatches keep one watched row with an atomic `rewatch_count`; v1 does not store every watch as a separate timestamped event.
+- Tracking rejects unknown canonical IDs; the catalogue identity must exist first, while valid marks may auto-create only the user’s media-state row.
+- Movie and episode mark/unmark operations use separate explicit server actions, even when the UI button label is the same.
+- Unmark confirmation offers `Unmark once` (default) or `Unmark completely` whenever affected watched state has rewatches.
+- Tracking mutations use a per-user `operation_id` so network retries cannot accidentally increment rewatches twice.
+- Watched rows preserve both first-watched and latest-watched timestamps.
+- M2 includes both single and approved bulk mark/unmark scopes; the server receives an explicit confirmed scope and never chooses one implicitly.
+- Bulk mark fills only unwatched gaps and never increments already-watched earlier episodes as rewatches.
+- Unreleased episodes and movies cannot be marked watched; bulk operations include only confirmed released episodes.
+- Unreleased titles may still be added to the library and appear in Upcoming.
+- Server actions strictly validate movie versus episodic identity and reject mismatches instead of guessing.
+- Removing even an untouched title keeps a hidden state row to remember intent; library reads exclude it until re-added.
+- First-time Google users must choose a valid username/display name before any library or tracking mutation; no temporary username is generated.
+- Plain Add to Library starts as a normal internal-active item, not Watch Later; zero progress still computes as Upcoming/Haven’t Started.
+- Decrementing a rewatch counter keeps `last_watched_at`; deleting the final watched state removes the row and timestamps.
+- Production-grade canonical history preservation remains required after M2 establishes the new schema.
 
 ## Known non-blocking follow-ups
 

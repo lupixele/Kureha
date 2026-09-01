@@ -1,12 +1,17 @@
 # PRD-001: Kureha v1 — Community Media Tracker
 
-**Status:** Approved (2026-08-30)  
+**Status:** Approved — initial 2026-08-30; owner-approved revision 2026-08-31
+
+**Version:** 1.1
+
 **Owner:** Gurala Ratan Teja (lupixele)  
 **Product:** Kureha  
 **Draft date:** 2026-08-30  
 **Scope:** Responsive web application v1  
 
 > This document is the product contract. Implementation details may evolve, but behavior identified by `US-*`, `FR-*`, `NFR-*`, and `AC-*` must not change without updating and re-approving this PRD.
+
+> **v1.1 change:** Added explicit `Unmark once` versus `Unmark completely` behavior for rewatched state (`FR-068H/I`, `AC-027F/G`). Unreleased titles remain addable to the library and Upcoming; only watched mutations are release-gated.
 
 ---
 
@@ -389,6 +394,8 @@ These are independent dimensions:
 - **FR-068E:** Current-season scope must unmark the selected canonical episode and later watched canonical episodes only within that season. All-seasons scope must also unmark later watched canonical episodes in subsequent accepted mainline seasons.
 - **FR-068F:** Unwatch bulk actions must not affect earlier episodes or extras.
 - **FR-068G:** If no later watched canonical episodes exist, unmarking may proceed directly without the cascade prompt.
+- **FR-068H:** If any selected watched episode has `rewatch_count > 1`, the confirmation must additionally offer `Unmark once` and `Unmark completely`; `Unmark once` must be selected by default.
+- **FR-068I:** `Unmark once` must decrement each selected row by one and delete only rows whose count was 1. `Unmark completely` must delete each selected watched row regardless of its rewatch count.
 - **FR-069:** A season-level bulk action must mark the current season’s released canonical episodes watched and must never silently expand to all seasons.
 - **FR-070:** A separate explicitly labelled all-seasons bulk action may mark all currently released canonical episodes in the accepted mainline watched.
 - **FR-071:** Bulk operations must execute transactionally and present their scope before confirmation.
@@ -600,6 +607,8 @@ These are independent dimensions:
 - **AC-027C (US-18):** Given `This episode only` is confirmed, then later watched episodes remain watched.
 - **AC-027D (US-18):** Given `This and later episodes · Current season` is confirmed, then the selected episode and later canonical episodes in that season are unmarked while other seasons and extras remain unchanged.
 - **AC-027E (US-18):** Given `This and later episodes · All seasons` is confirmed, then the selected episode and later canonical episodes across subsequent accepted mainline seasons are unmarked while earlier episodes and extras remain unchanged.
+- **AC-027F (US-18):** Given an affected watched episode has a rewatch count above 1, when the unwatch confirmation opens, then it offers `Unmark once` (default) and `Unmark completely`.
+- **AC-027G (US-18):** Given `Unmark once` is confirmed, each affected row is decremented by one; given `Unmark completely` is confirmed, each affected row is deleted regardless of count.
 - **AC-028 (US-19):** Given a season containing released canonical episodes and gaps elsewhere, when the user confirms the current-season bulk action, then only that season’s released canonical episodes are watched transactionally.
 - **AC-028A (US-19):** Given a group has multiple seasons, when bulk scope is offered, then current season and all seasons are separate explicit choices; neither is silently selected from the other.
 - **AC-029 (US-20):** Given an ongoing group with earlier gaps, when its latest known released canonical episode is watched, then progress derives caught up and the earlier gaps remain unwatched.

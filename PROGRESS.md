@@ -2,15 +2,17 @@
 
 **Last updated:** 2026-09-01 08:47 IST
 
-**Canonical product contract:** [`docs/prd/PRD-001-kureha-core.md`](docs/prd/PRD-001-kureha-core.md)
+**Canonical product contract:** [`docs/prd/PRD-001-kureha-core.md`](docs/prd/PRD-001-kureha-core.md) (v1.2)
 
 **Execution ledger:** [`docs/implementation/MILESTONES.md`](docs/implementation/MILESTONES.md)
 
 **Approved M2 architecture:** [`docs/architecture/M2-canonical-tracking-contract.md`](docs/architecture/M2-canonical-tracking-contract.md)
 
+**Draft M3 architecture:** [`docs/architecture/M3-metadata-providers-contract.md`](docs/architecture/M3-metadata-providers-contract.md)
+
 ## Current phase
 
-Approved PRD and architecture implementation. Milestone 1 and Milestone 2 are complete and verified. Milestone 2 (canonical tracking references and server actions) has passed implementation, 40 PGlite acceptance tests, typecheck, build, and independent adversarial review.
+Milestone 1 and Milestone 2 are complete and verified. Milestone 3's architecture contract has passed independent review and was approved by the owner on 2026-09-01. PRD-001 v1.2 includes optional Fanart.tv transparent title-logo enrichment and per-profile known-provider artwork preferences for logo, cover, and backdrop.
 
 The first independent M2 review requested contract corrections. Those corrections were applied for unreleased progress, concurrent idempotency/rewatches, library/delete transactions, and date-only release evidence. A focused independent confirmation review returned **PASS**, and the owner approved the corrected contract on 2026-09-01.
 
@@ -58,9 +60,9 @@ See [`docs/implementation/MILESTONES.md`](docs/implementation/MILESTONES.md) for
 
 ## Next checkpoint
 
-1. Commit and push the verified M2 checkpoint on `feat/m2-canonical-tracking-references`.
-2. Do not merge into `main` without explicit user direction.
-3. Next milestone: Milestone 3 (Metadata provider integration — AniList anime client + TMDB movies/TV client + Ani.zip enrichment).
+1. Commit and push the approved M3 contract checkpoint.
+2. Create a separate M3 implementation branch and begin contract-traced failing tests.
+3. Do not merge into `main` without explicit user direction.
 
 ## M2 boundary
 

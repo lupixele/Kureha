@@ -16,7 +16,7 @@ This ledger is the compact execution checkpoint for work governed by [`docs/prd/
 | Baseline | Stabilize Phase 2 core, approve PRD-001, isolate opt-in Postgres tests | Closed | `58d66be` | 23 unit tests, typecheck, build |
 | M1 | Canonical media identity and mapping-history schema | Closed | `e979965` on `feat/m1-canonical-media-identity` | 29 tests including PGlite `0000 → 0001`, typecheck, build, diff check, Graphify update, independent review PASS |
 | M2 | Tracking migration to canonical group/episode IDs | Closed | `5fc22a2` on `feat/m2-canonical-tracking-references` | 40 PGlite tests, typecheck, build, diff check, Graphify update, final independent review PASS |
-| M3 | Metadata providers, canonical ingestion, artwork, and adaptive refresh | In progress | Branch `feat/m3-metadata-provider-ingestion` | Independent contract review PASS; owner approved 2026-09-01; M3-A database contract in progress |
+| M3 | Metadata providers, canonical ingestion, artwork, and adaptive refresh | In progress | Branch `feat/m3-d-review-refresh-artwork` | M3-A (df039e3), M3-B (9cf9915), M3-C (50b85d9), M3-D (4101927) complete & verified; 102 passing tests, typecheck, build |
 
 ## M1 acceptance record — 2026-08-31
 

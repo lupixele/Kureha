@@ -1,9 +1,11 @@
-# Kureha Frontend System Design Specification
+# Kureha Frontend System Design Specification [DRAFT — OPEN FOR ITERATION]
 
-**Document Version:** 1.0  
-**Scope:** Stages M4 (Search & Details), M5 (Library, Up Next & Calendar), M6 (Social Feed & Maintainer UI)  
-**Contract Source:** [`docs/prd/PRD-001-kureha-core.md`](../prd/PRD-001-kureha-core.md) v1.2  
-**Tech Stack:** React 19, TanStack Start / React Router, Supabase Auth, Pure CSS / Modern Design Tokens.
+**Document Status:** Draft / Under Review (Frontend not locked; open for design iterations)
+**Owner:** Gurala Ratan Teja (lupixele)
+**Scope:** Stages M4 (Search & Details), M5 (Library, Up Next & Calendar), M6 (Social Feed & Maintainer UI)
+**Contract Source:** [`docs/prd/PRD-001-kureha-core.md`](../prd/PRD-001-kureha-core.md) v1.2
+**Tech Stack:** React 19, TanStack Start / React Router, Supabase Auth.
+*(Note: No frontend code will be built until design is finalized with owner.)*
 
 ---
 

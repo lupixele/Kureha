@@ -1,6 +1,6 @@
 # Kureha Progress
 
-**Last updated:** 2026-09-01 08:47 IST
+**Last updated:** 2026-09-05 13:26 IST
 
 **Canonical product contract:** [`docs/prd/PRD-001-kureha-core.md`](docs/prd/PRD-001-kureha-core.md) (v1.2)
 
@@ -8,21 +8,22 @@
 
 **Approved M2 architecture:** [`docs/architecture/M2-canonical-tracking-contract.md`](docs/architecture/M2-canonical-tracking-contract.md)
 
-**Draft M3 architecture:** [`docs/architecture/M3-metadata-providers-contract.md`](docs/architecture/M3-metadata-providers-contract.md)
+**Approved M3 architecture:** [`docs/architecture/M3-metadata-providers-contract.md`](docs/architecture/M3-metadata-providers-contract.md)
 
 ## Current phase
 
-Milestone 1 and Milestone 2 are complete and verified. Milestone 3's architecture contract has passed independent review and was approved by the owner on 2026-09-01. PRD-001 v1.2 includes optional Fanart.tv transparent title-logo enrichment and per-profile known-provider artwork preferences for logo, cover, and backdrop.
+Milestone 1 and Milestone 2 are complete and verified. Milestone 3 (Metadata providers, canonical ingestion, artwork, and adaptive refresh) is in progress on branch `feat/m3-metadata-provider-ingestion`. Milestone 3-A implements the additive database schema (`0003`) and migration verification. PRD-001 v1.2 includes optional Fanart.tv transparent title-logo enrichment and per-profile known-provider artwork preferences for logo, cover, and backdrop.
 
 The first independent M2 review requested contract corrections. Those corrections were applied for unreleased progress, concurrent idempotency/rewatches, library/delete transactions, and date-only release evidence. A focused independent confirmation review returned **PASS**, and the owner approved the corrected contract on 2026-09-01.
 
 ## Current Git state
 
-- Active branch: `feat/m2-canonical-tracking-references`
+- Active branch: `feat/m3-metadata-provider-ingestion`
 - M1 checkpoint: `e979965` (closed)
 - M1/M2 contract checkpoint: `2d027c4` (pushed to `origin/feat/m1-canonical-media-identity`)
-- M2 checkpoint commit: `5fc22a2` (pushed to `origin/feat/m2-canonical-tracking-references`)
-- M2 status: **Closed**
+- M2 checkpoint commit: `5fc22a2` (closed on `feat/m2-canonical-tracking-references`)
+- M3 contract approval commit: `409f592`
+- M3 status: **In progress** (M3-A database migration contract)
 
 ## Completed checkpoints
 

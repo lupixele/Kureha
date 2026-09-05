@@ -1,4 +1,4 @@
-import { boolean, check, foreignKey, integer, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, unique, uniqueIndex, uuid, varchar, date } from 'drizzle-orm/pg-core';
+import { boolean, check, foreignKey, index, integer, doublePrecision, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, unique, uniqueIndex, uuid, varchar, date } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 import type { Intent, MetadataSource, TrackedMedia } from '../core/types';
 
@@ -46,6 +46,8 @@ export const mediaGroups = pgTable('media_groups', {
   releaseState: releaseStateEnum('release_state').notNull(),
   reviewRequired: boolean('review_required').notNull().default(false),
   derivedAt: timestamp('derived_at', { withTimezone: true }),
+  metadataUpdatedAt: timestamp('metadata_updated_at', { withTimezone: true }),
+  metadataPayloadHash: text('metadata_payload_hash'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
@@ -74,6 +76,8 @@ export const installments = pgTable('installments', {
   startDate: date('start_date'),
   endDate: date('end_date'),
   totalEpisodes: integer('total_episodes'),
+  metadataUpdatedAt: timestamp('metadata_updated_at', { withTimezone: true }),
+  metadataPayloadHash: text('metadata_payload_hash'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
@@ -168,6 +172,7 @@ export const releaseStateEvidence = pgTable('release_state_evidence', {
   exactTime: timestamp('exact_time', { withTimezone: true }),
   exactDate: date('exact_date'),
   payload: jsonb('payload'),
+  payloadHash: text('payload_hash'),
   fetchedAt: timestamp('fetched_at', { withTimezone: true }).notNull().defaultNow(),
   expiresAt: timestamp('expires_at', { withTimezone: true }),
 }, (table) => [
@@ -252,3 +257,134 @@ export type MappingVersionRow = typeof mappingVersions.$inferSelect;
 export type ProviderMappingRow = typeof providerMappings.$inferSelect;
 export type MappingVersionEntryRow = typeof mappingVersionEntries.$inferSelect;
 export type ReleaseStateEvidenceRow = typeof releaseStateEvidence.$inferSelect;
+
+// M3-A: additive metadata catalogue. Canonical providerEnum and M2 history stay intact.
+export const artworkProviderEnum = pgEnum('artwork_provider', ['anilist', 'tmdb', 'fanart']);
+export const refreshJobProviderEnum = pgEnum('refresh_job_provider', ['anilist', 'tmdb', 'anizip', 'fanart']);
+export const refreshCadenceTierEnum = pgEnum('refresh_cadence_tier', ['airing_15m', 'upcoming_6h', 'daily', 'weekly', 'monthly', 'on_demand']);
+export const refreshJobStatusEnum = pgEnum('refresh_job_status', ['queued', 'running', 'retry_wait', 'succeeded', 'dead']);
+export const catalogueReviewReasonEnum = pgEnum('catalogue_review_reason', ['ambiguous_branch', 'uncertain_anime', 'mapping_conflict', 'provider_conflict', 'unmatched_episode', 'schema_drift']);
+export const catalogueReviewStatusEnum = pgEnum('catalogue_review_status', ['pending', 'accepted', 'rejected', 'resolved']);
+export const artworkKindEnum = pgEnum('artwork_kind', ['title_logo', 'cover', 'backdrop']);
+
+export const mediaRelations = pgTable('media_relations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  sourceInstallmentId: uuid('source_installment_id').notNull().references(() => installments.id, { onDelete: 'cascade' }),
+  targetProvider: providerEnum('target_provider').notNull(),
+  targetProviderId: text('target_provider_id').notNull(),
+  targetInstallmentId: uuid('target_installment_id').references(() => installments.id, { onDelete: 'set null' }),
+  relationType: text('relation_type').notNull(),
+  classification: text('classification').notNull(),
+  reviewState: text('review_state').notNull(),
+  firstSeenAt: timestamp('first_seen_at', { withTimezone: true }).notNull(),
+  lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull(),
+}, (table) => [
+  unique('media_relations_edge_unique').on(table.sourceInstallmentId, table.targetProvider, table.targetProviderId, table.relationType),
+  check('media_relations_classification_check', sql`${table.classification} IN ('mainline_candidate', 'extra', 'alternate', 'related', 'ignored')`),
+  check('media_relations_review_state_check', sql`${table.reviewState} IN ('not_required', 'pending', 'accepted', 'rejected')`),
+]);
+
+export const catalogueReviewItems = pgTable('catalogue_review_items', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  mediaGroupId: uuid('media_group_id').references(() => mediaGroups.id, { onDelete: 'cascade' }),
+  subjectProvider: providerEnum('subject_provider').notNull(),
+  subjectProviderId: text('subject_provider_id').notNull(),
+  reason: catalogueReviewReasonEnum('reason').notNull(),
+  status: catalogueReviewStatusEnum('status').notNull().default('pending'),
+  // Only normalized evidence; ingestion must not persist complete provider responses.
+  evidence: jsonb('evidence'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  resolvedAt: timestamp('resolved_at', { withTimezone: true }),
+  resolvedBy: uuid('resolved_by').references(() => profiles.id, { onDelete: 'set null' }),
+}, (table) => [
+  uniqueIndex('catalogue_review_items_open_group_idx').on(table.reason, table.subjectProvider, table.subjectProviderId, table.mediaGroupId)
+    .where(sql`${table.status} = 'pending' AND ${table.mediaGroupId} IS NOT NULL`),
+  uniqueIndex('catalogue_review_items_open_ungrouped_idx').on(table.reason, table.subjectProvider, table.subjectProviderId)
+    .where(sql`${table.status} = 'pending' AND ${table.mediaGroupId} IS NULL`),
+]);
+
+export const artworkAssets = pgTable('artwork_assets', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  mediaGroupId: uuid('media_group_id').notNull().references(() => mediaGroups.id, { onDelete: 'cascade' }),
+  installmentId: uuid('installment_id').references(() => installments.id, { onDelete: 'set null' }),
+  provider: artworkProviderEnum('provider').notNull(),
+  kind: artworkKindEnum('kind').notNull(),
+  providerAssetId: text('provider_asset_id').notNull(),
+  url: text('url').notNull(),
+  language: text('language'),
+  voteScore: doublePrecision('vote_score'),
+  width: integer('width'),
+  height: integer('height'),
+  sourceMappingId: uuid('source_mapping_id').references(() => mappingVersionEntries.id, { onDelete: 'set null' }),
+  payloadHash: text('payload_hash'),
+  firstSeenAt: timestamp('first_seen_at', { withTimezone: true }).notNull(),
+  lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull(),
+  lastSuccessfulRefreshAt: timestamp('last_successful_refresh_at', { withTimezone: true }),
+  isAvailable: boolean('is_available').notNull().default(true),
+}, (table) => [
+  unique('artwork_assets_provider_asset_kind_unique').on(table.provider, table.providerAssetId, table.kind),
+  check('artwork_assets_fanart_logo_only', sql`${table.provider} <> 'fanart' OR ${table.kind} = 'title_logo'`),
+  // Active mapping eligibility is validated by the artwork repository (cross-table rule).
+]);
+
+export const userArtworkPreferences = pgTable('user_artwork_preferences', {
+  userId: uuid('user_id').notNull().references(() => profiles.id, { onDelete: 'cascade' }),
+  mediaGroupId: uuid('media_group_id').notNull().references(() => mediaGroups.id, { onDelete: 'cascade' }),
+  titleLogoAssetId: uuid('title_logo_asset_id').references(() => artworkAssets.id, { onDelete: 'set null' }),
+  coverAssetId: uuid('cover_asset_id').references(() => artworkAssets.id, { onDelete: 'set null' }),
+  backdropAssetId: uuid('backdrop_asset_id').references(() => artworkAssets.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  primaryKey({ columns: [table.userId, table.mediaGroupId] }),
+  // Repository validation owns same-group/kind selection and profile authorization.
+]);
+
+export const metadataRefreshJobs = pgTable('metadata_refresh_jobs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  provider: refreshJobProviderEnum('provider').notNull(),
+  targetType: text('target_type').notNull(),
+  targetId: text('target_id').notNull(),
+  jobKind: text('job_kind').notNull(),
+  mediaGroupId: uuid('media_group_id').references(() => mediaGroups.id, { onDelete: 'cascade' }),
+  priority: text('priority').notNull().default('background'),
+  cadenceTier: refreshCadenceTierEnum('cadence_tier').notNull(),
+  status: refreshJobStatusEnum('status').notNull().default('queued'),
+  nextAttemptAt: timestamp('next_attempt_at', { withTimezone: true }).notNull().defaultNow(),
+  leaseOwner: text('lease_owner'),
+  leaseExpiresAt: timestamp('lease_expires_at', { withTimezone: true }),
+  attempts: integer('attempts').notNull().default(0),
+  maxAttempts: integer('max_attempts').notNull().default(5),
+  errorCode: text('error_code'),
+  errorMessage: text('error_message'), // Sanitized by the worker before persistence.
+  lastSucceededAt: timestamp('last_succeeded_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  unique('metadata_refresh_jobs_logical_key_unique').on(table.provider, table.targetType, table.targetId, table.jobKind),
+  index('metadata_refresh_jobs_claim_idx').on(table.status, table.nextAttemptAt, table.priority),
+  check('metadata_refresh_jobs_priority_check', sql`${table.priority} IN ('interactive', 'background')`),
+]);
+
+export const providerSyncRuns = pgTable('provider_sync_runs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  provider: refreshJobProviderEnum('provider').notNull(),
+  operation: text('operation').notNull(),
+  targetId: text('target_id').notNull(), // Provider ID or hash; never a user-sensitive query.
+  outcome: text('outcome').notNull(),
+  httpStatus: integer('http_status'),
+  retryCount: integer('retry_count').notNull().default(0),
+  durationMs: integer('duration_ms').notNull(),
+  responseContentHash: text('response_content_hash'),
+  errorClass: text('error_class'),
+  errorCode: text('error_code'),
+  startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+});
+
+export type MediaRelationRow = typeof mediaRelations.$inferSelect;
+export type CatalogueReviewItemRow = typeof catalogueReviewItems.$inferSelect;
+export type ArtworkAssetRow = typeof artworkAssets.$inferSelect;
+export type UserArtworkPreferenceRow = typeof userArtworkPreferences.$inferSelect;
+export type MetadataRefreshJobRow = typeof metadataRefreshJobs.$inferSelect;
+export type ProviderSyncRunRow = typeof providerSyncRuns.$inferSelect;

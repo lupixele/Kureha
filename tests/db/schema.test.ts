@@ -37,6 +37,10 @@ describe('M1 Canonical Media Identity Schema - PGlite Integration', () => {
 
     await pg.exec(migration0000);
     await pg.exec(migration0001);
+    // Exercise M1 invariants against the current additive schema used by Drizzle.
+    for (const file of files.filter(f => /^000[23]_.*\.sql$/.test(f)).sort()) {
+      await pg.exec(fs.readFileSync(path.join(drizzleDir, file), 'utf8'));
+    }
   });
 
   afterAll(async () => {

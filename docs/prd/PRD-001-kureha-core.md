@@ -1,8 +1,8 @@
 # PRD-001: Kureha v1 — Community Media Tracker
 
-**Status:** Approved — initial 2026-08-30; owner-approved revision 2026-08-31
+**Status:** Approved — initial 2026-08-30; owner-approved revisions 2026-08-31 and 2026-09-01
 
-**Version:** 1.1
+**Version:** 1.2
 
 **Owner:** Gurala Ratan Teja (lupixele)  
 **Product:** Kureha  
@@ -12,6 +12,8 @@
 > This document is the product contract. Implementation details may evolve, but behavior identified by `US-*`, `FR-*`, `NFR-*`, and `AC-*` must not change without updating and re-approving this PRD.
 
 > **v1.1 change:** Added explicit `Unmark once` versus `Unmark completely` behavior for rewatched state (`FR-068H/I`, `AC-027F/G`). Unreleased titles remain addable to the library and Upcoming; only watched mutations are release-gated.
+
+> **v1.2 change:** Added Fanart.tv as optional transparent styled title-logo artwork and per-profile provider-art preferences for title logos, covers, and backdrops. Fanart.tv is not a canonical metadata provider and does not supply Kureha cover or backdrop art in v1.
 
 ---
 
@@ -323,6 +325,15 @@ These are independent dimensions:
 - **FR-030:** Ani.zip data must not define Kureha canonical identity or watched progress.
 - **FR-031:** TMDB artwork may enrich an anime group only through a positive stored AniList-to-TMDB mapping.
 - **FR-032:** Provider payloads must be normalized behind typed adapters before entering the tracking domain.
+- **FR-032A:** Fanart.tv may supply transparent styled title-logo artwork only when the title has a positive stored mapping to the identifier required by Fanart.tv. Fanart.tv must not define canonical identity, relations, release state, episodes, watched progress, cover art, or backdrop art.
+- **FR-032B:** Kureha must retain normalized artwork candidates with provider provenance, provider asset identifier or path, language, vote/rank metadata when available, dimensions when available, and last-successful refresh time. Full raw provider payloads must not be retained.
+- **FR-032C:** Default transparent title-logo selection must prefer the viewer's configured language, then English, then language-neutral artwork, choosing the highest-ranked candidate within the first available language tier.
+- **FR-032D:** Default cover and backdrop selection must use eligible AniList or TMDB artwork under canonical-provider and positive-mapping rules. Fanart.tv posters, covers, and backgrounds are outside v1 scope even if Fanart.tv exposes them.
+- **FR-032E:** An authenticated user may select separate preferred title-logo, cover, and backdrop candidates for each Kureha media group from known eligible provider assets.
+- **FR-032F:** A user's selected artwork preferences are part of that user's profile presentation. The owner and viewers authorized to see that profile/library must see those selections; unauthorized viewers must not receive the preference records.
+- **FR-032G:** User artwork preferences must reference Kureha media-group IDs and normalized provider-asset IDs, not arbitrary external URLs. Custom URLs and user-uploaded artwork are deferred beyond v1.
+- **FR-032H:** If a selected provider asset becomes unavailable or ineligible, Kureha must preserve the preference reference for audit/recovery but render the current default eligible asset until the selection becomes valid or is replaced.
+- **FR-032I:** Fanart.tv unavailability, missing logos, mapping gaps, quota exhaustion, or schema changes must degrade to a text title without blocking search, details, library operations, tracking, canonical import, or AniList/TMDB refresh.
 
 ### 7.5 Unified search
 
@@ -496,6 +507,7 @@ These are independent dimensions:
 - **FR-120:** Existing-library tracking mutations must not require a live provider response.
 - **FR-121:** Ani.zip enrichment must support timeout, retry, schema validation, disk/database cache, and graceful fallback.
 - **FR-122:** Provider refresh failures must be observable without exposing secrets.
+- **FR-122A:** Fanart.tv logo enrichment must run server-side with timeout, retry, schema validation, adaptive caching, documented rate-limit/backoff handling, and graceful fallback. API keys must never enter client bundles or logs.
 
 ---
 
@@ -666,6 +678,17 @@ These are independent dimensions:
 - **AC-055 (US-34):** Given a fresh checkout without provider credentials, when the default unit suite runs, then it passes without network access.
 - **AC-056 (US-34):** Given no `TEST_DATABASE_URL`, when real-Postgres tests are requested, then they skip or fail safely before connecting.
 
+### Artwork and per-profile presentation
+
+- **AC-056A:** Given a positively mapped title with eligible Fanart.tv transparent logos, when default title art is selected for a viewer, then the viewer's configured language is preferred, followed by English and language-neutral candidates, with the highest-ranked candidate selected within the first available tier.
+- **AC-056B:** Given no valid Fanart.tv mapping, no eligible logo, timeout, quota exhaustion, or a malformed Fanart.tv response, when title details render, then Kureha shows a text title and search, import, library, and tracking operations remain available.
+- **AC-056C:** Given Fanart.tv also returns posters or backgrounds, when its payload is normalized, then only eligible transparent title-logo candidates enter Kureha's v1 Fanart artwork catalogue.
+- **AC-056D:** Given an authenticated user selects known-provider title-logo, cover, and backdrop candidates, when that user or an authorized viewer opens the user's profile/library presentation, then all three selected assets render independently.
+- **AC-056E:** Given a user chooses artwork for one group, when another user views the same canonical group outside that profile context, then the second user's own preference or Kureha's default is used; canonical artwork metadata is not overwritten.
+- **AC-056F:** Given a user's selected asset is removed or becomes ineligible, when the profile/library renders, then Kureha uses the current default eligible asset without deleting the stored preference reference.
+- **AC-056G:** Given an unauthenticated user or unauthorized account requests a private or friends-only profile's artwork preferences, when authorization is evaluated, then no preference record or selected provider-asset identifier is returned.
+- **AC-056H:** Given a production client build, when artifacts are inspected, then no Fanart.tv, TMDB, or other server-side provider API secret is present.
+
 ---
 
 ## 10. Data and event semantics
@@ -776,6 +799,7 @@ No implementation phase is complete until:
 - AniList for anime metadata and relations.
 - TMDB for movies and non-anime television.
 - Ani.zip as optional non-blocking anime enrichment.
+- Fanart.tv as optional transparent title-logo enrichment only.
 
 ### External dependency constraints
 
@@ -783,9 +807,12 @@ No implementation phase is complete until:
 - AniList relations may be missing, incorrect, or branchy.
 - Ani.zip can be incomplete for OVAs and must remain optional.
 - TMDB artwork and anime deduplication require verified mappings.
+- Fanart.tv title-logo coverage depends on TMDB/TVDB mapping quality, community submissions, access tier, and provider availability; it must remain optional.
 - The implementation must cache normalized data and preserve last-known-good records.
 
 ### Legal constraint
+
+- Provider terms, image licenses, attribution requirements, and API usage policies for TMDB, Fanart.tv, AniList, and Ani.zip must be reviewed before production launch.
 
 Shiru was audited for behavior under GPL-3.0. Kureha may independently implement learned concepts but must not copy Shiru source, regex tables, or implementation code unless Kureha intentionally accepts GPL obligations.
 

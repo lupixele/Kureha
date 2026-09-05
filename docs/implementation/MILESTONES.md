@@ -15,7 +15,8 @@ This ledger is the compact execution checkpoint for work governed by [`docs/prd/
 |---|---|---|---|---|
 | Baseline | Stabilize Phase 2 core, approve PRD-001, isolate opt-in Postgres tests | Closed | `58d66be` | 23 unit tests, typecheck, build |
 | M1 | Canonical media identity and mapping-history schema | Closed | `e979965` on `feat/m1-canonical-media-identity` | 29 tests including PGlite `0000 → 0001`, typecheck, build, diff check, Graphify update, independent review PASS |
-| M2 | Tracking migration to canonical group/episode IDs | In progress | Approved architecture contract awaiting implementation checkpoint | Owner decisions D-001–D-021 recorded; independent confirmation PASS; owner approved 2026-09-01 |
+| M2 | Tracking migration to canonical group/episode IDs | Closed | `5fc22a2` on `feat/m2-canonical-tracking-references` | 40 PGlite tests, typecheck, build, diff check, Graphify update, final independent review PASS |
+| M3 | Metadata providers, canonical ingestion, artwork, and adaptive refresh | Planned | Approved contract; no implementation branch | Independent contract review PASS; owner approved 2026-09-01 |
 
 ## M1 acceptance record — 2026-08-31
 
@@ -146,6 +147,27 @@ When Unmark decrements a rewatch counter (for example `x2` to `x1`), `last_watch
 
 ### M2 architecture review checkpoint
 
-Fresh-context review initially returned **NEEDS CHANGES** for missing unreleased progress derivation, undefined idempotency race handling, underspecified library/deletion transactions, and ambiguous date-only release timing. The contract now explicitly defines all four areas and adds concurrency/progress acceptance tests. A focused independent confirmation review returned **PASS** on 2026-09-01. The owner approved the corrected contract on 2026-09-01; no M2 implementation had started at approval time.
+Fresh-context review initially returned **NEEDS CHANGES** for missing unreleased progress derivation, undefined idempotency race handling, underspecified library/deletion transactions, and ambiguous date-only release timing. The contract was corrected and approved on 2026-09-01. OpenCode completed the implementation, and a comprehensive independent acceptance review returned **PASS** on 2026-09-01 across all 10 repair criteria.
+
+## M2 acceptance record — 2026-09-01
+
+### Delivered
+
+- Canonical tracking schema (`user_media_state`, `canonical_watched_episodes`, `canonical_watched_movies`, `tracking_operations`).
+- Clean destructive legacy migration (`drizzle/0002_M2_canonical_tracking.sql`) with synchronized snapshot and journal.
+- Full bulk mark/unmark traversal with extras/track isolation and deterministic row locking.
+- Canonical progress engine returning updated status and progress frontier in every mutation summary.
+- Conservative UTC date-only and exact-time release gating for episodes and movies.
+- Profile prerequisite gating (`PROFILE_SETUP_REQUIRED` vs `UNAUTHORIZED`).
+- Eight authenticated TanStack `createServerFn` actions in `src/server/actions/tracking.functions.ts`.
+- 40 automated PGlite tests covering all 33+ contract scenarios.
+
+### Acceptance evidence
+
+- `npm test`: **40/40 passed** in PGlite.
+- `npm run typecheck`: clean (0 errors).
+- `npm run build`: clean (client + SSR built).
+- `git diff --check`: clean.
+- Independent final review: **PASS**.
 
 M2 must not start implementation until its short architecture contract, migration sequence, rollback rule, and acceptance tests are written and reviewed.

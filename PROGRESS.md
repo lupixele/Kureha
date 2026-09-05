@@ -2,25 +2,27 @@
 
 **Last updated:** 2026-09-01 08:47 IST
 
-**Canonical product contract:** [`docs/prd/PRD-001-kureha-core.md`](docs/prd/PRD-001-kureha-core.md)
+**Canonical product contract:** [`docs/prd/PRD-001-kureha-core.md`](docs/prd/PRD-001-kureha-core.md) (v1.2)
 
 **Execution ledger:** [`docs/implementation/MILESTONES.md`](docs/implementation/MILESTONES.md)
 
 **Approved M2 architecture:** [`docs/architecture/M2-canonical-tracking-contract.md`](docs/architecture/M2-canonical-tracking-contract.md)
 
+**Draft M3 architecture:** [`docs/architecture/M3-metadata-providers-contract.md`](docs/architecture/M3-metadata-providers-contract.md)
+
 ## Current phase
 
-Approved PRD and architecture implementation. The deterministic tracking core and server wiring baseline are stable. Milestone 1 is closed. Milestone 2 has an owner-approved canonical tracking contract and is ready for its implementation checkpoint; no M2 code has started yet.
+Milestone 1 and Milestone 2 are complete and verified. Milestone 3's architecture contract has passed independent review and was approved by the owner on 2026-09-01. PRD-001 v1.2 includes optional Fanart.tv transparent title-logo enrichment and per-profile known-provider artwork preferences for logo, cover, and backdrop.
 
 The first independent M2 review requested contract corrections. Those corrections were applied for unreleased progress, concurrent idempotency/rewatches, library/delete transactions, and date-only release evidence. A focused independent confirmation review returned **PASS**, and the owner approved the corrected contract on 2026-09-01.
 
 ## Current Git state
 
-- Branch: `feat/m1-canonical-media-identity`
-- Baseline commit: `58d66be`
-- M1 checkpoint commit: `e979965`
-- M1 status: **Closed**
-- Remote state: M1/M2 contract checkpoint pending push; not merged
+- Active branch: `feat/m2-canonical-tracking-references`
+- M1 checkpoint: `e979965` (closed)
+- M1/M2 contract checkpoint: `2d027c4` (pushed to `origin/feat/m1-canonical-media-identity`)
+- M2 checkpoint commit: `5fc22a2` (pushed to `origin/feat/m2-canonical-tracking-references`)
+- M2 status: **Closed**
 
 ## Completed checkpoints
 
@@ -58,9 +60,9 @@ See [`docs/implementation/MILESTONES.md`](docs/implementation/MILESTONES.md) for
 
 ## Next checkpoint
 
-1. Do not push or merge `feat/m1-canonical-media-identity` without explicit user direction.
-2. Commit and push the approved M2 contract checkpoint.
-3. Create a clean M2 implementation branch from that checkpoint and launch OpenCode with contract-traced tests first.
+1. Commit and push the approved M3 contract checkpoint.
+2. Create a separate M3 implementation branch and begin contract-traced failing tests.
+3. Do not merge into `main` without explicit user direction.
 
 ## M2 boundary
 

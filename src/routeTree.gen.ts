@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as TestLibraryRouteImport } from './routes/test-library'
 import { Route as ApiTestAuthRouteImport } from './routes/api/test-auth'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 
@@ -23,11 +22,6 @@ const IndexRoute = IndexRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TestLibraryRoute = TestLibraryRouteImport.update({
-  id: '/test-library',
-  path: '/test-library',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiTestAuthRoute = ApiTestAuthRouteImport.update({
@@ -44,14 +38,12 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/test-library': typeof TestLibraryRoute
   '/api/test-auth': typeof ApiTestAuthRoute
   '/auth/callback': typeof AuthCallbackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/test-library': typeof TestLibraryRoute
   '/api/test-auth': typeof ApiTestAuthRoute
   '/auth/callback': typeof AuthCallbackRoute
 }
@@ -59,29 +51,20 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/test-library': typeof TestLibraryRoute
   '/api/test-auth': typeof ApiTestAuthRoute
   '/auth/callback': typeof AuthCallbackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    '/' | '/login' | '/test-library' | '/api/test-auth' | '/auth/callback'
+  fullPaths: '/' | '/login' | '/api/test-auth' | '/auth/callback'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/test-library' | '/api/test-auth' | '/auth/callback'
-  id:
-    | '__root__'
-    | '/'
-    | '/login'
-    | '/test-library'
-    | '/api/test-auth'
-    | '/auth/callback'
+  to: '/' | '/login' | '/api/test-auth' | '/auth/callback'
+  id: '__root__' | '/' | '/login' | '/api/test-auth' | '/auth/callback'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
-  TestLibraryRoute: typeof TestLibraryRoute
   ApiTestAuthRoute: typeof ApiTestAuthRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
 }
@@ -100,13 +83,6 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/test-library': {
-      id: '/test-library'
-      path: '/test-library'
-      fullPath: '/test-library'
-      preLoaderRoute: typeof TestLibraryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/test-auth': {
@@ -129,7 +105,6 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
-  TestLibraryRoute: TestLibraryRoute,
   ApiTestAuthRoute: ApiTestAuthRoute,
   AuthCallbackRoute: AuthCallbackRoute,
 }
